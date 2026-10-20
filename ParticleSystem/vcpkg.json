@@ -1,0 +1,13 @@
+{
+  "dependencies": [
+    "entt",
+    "raylib",
+    "glad"
+  ],
+  "overrides": [
+    {
+      "name": "raylib",
+      "version": "5.5"
+    }
+  ]
+}
