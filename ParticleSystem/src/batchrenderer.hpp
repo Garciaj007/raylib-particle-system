@@ -11,7 +11,9 @@ class PointBatchRenderer
 		Color color;
 	};
 
-	uint32_t vbo, vao, shader, projectionShaderLoc;
+	uint32_t vbo, vao;
+
+	Shader shader;
 
 	Matrix projection;
 
@@ -25,11 +27,12 @@ public:
 		maxCapacity(maxCapacity),
 		count(0),
 		vao(0),
-		vbo(0), 
-		shader(rlLoadShaderCode(LoadFileText("shaders/pointbatch.vert"), LoadFileText("shaders/pointbatch.frag"))),
-		projectionShaderLoc(rlGetLocationUniform(shader, "uProjection")),
+		vbo(0),
+		shader(LoadShader("shaders/pointbatch.vert", "shaders/pointbatch.frag")),
 		projection()
 	{
+		shader.locs[SHADER_LOC_MATRIX_PROJECTION] = GetShaderLocation(shader, "uProjection");
+
 		vao = rlLoadVertexArray();
 		rlEnableVertexArray(vao);
 
@@ -62,18 +65,18 @@ public:
 			Draw();
 		}
 
-		points.push_back({position, size, color});
+		points.push_back({ position, size, color });
 		count++;
 	}
 
 	void Draw()
 	{
-		rlEnableShader(shader);
+		rlEnableShader(shader.id);
 		rlEnableVertexArray(vao);
 		rlEnableVertexBuffer(vbo);
-		rlSetUniformMatrix(projectionShaderLoc, projection);
+		rlSetUniformMatrix(shader.locs[SHADER_LOC_MATRIX_PROJECTION], projection);
 		rlUpdateVertexBuffer(vbo, points.data(), count * sizeof(Point), 0);
-		
+
 		glDrawArrays(GL_POINTS, 0, count);
 
 		rlDisableVertexBuffer();
@@ -86,7 +89,7 @@ public:
 
 	~PointBatchRenderer()
 	{
-		rlUnloadShaderProgram(shader);
+		rlUnloadShaderProgram(shader.id);
 		rlUnloadVertexBuffer(vbo);
 		rlUnloadVertexArray(vao);
 	}

@@ -89,10 +89,10 @@ namespace ecs
 
 			ecs::DestroyEntitySystem(registry);
 			SpawnParticleSystem(time);
-			auto lifetimeUpdateThread = ecs::LifetimeUpdateSystem(registry, time); 
+			auto lifetimeUpdateThread = ecs::LifetimeUpdateSystem(registry, time);
 			auto kinematicUpdateThread = ecs::KinematicUpdateSystem(registry, dt);
 			auto positionUpdateThread = ecs::PositionUpdateSystem(registry, dt);
-			
+
 			auto applyVelocityInterpolatedThread = ecs::ApplyInterpolatedVelocitySystem(registry);
 			auto applySizeInterpolatedThread = ecs::ApplyInterpolatedSizeSystem(registry);
 			auto applyColorInterpolatedThread = ecs::ApplyInterpolatedColorSystem(registry);
@@ -102,7 +102,7 @@ namespace ecs
 			auto interpolateColorThread = ecs::InterpolateColorSystem(registry);
 			auto interpolateRotationThread = ecs::InterpolateRotationSystem(registry);
 			auto interpolateAngularVelocityThread = ecs::InterpolateAngularVelocitySystem(registry);
-		
+
 			lifetimeUpdateThread.join();
 			kinematicUpdateThread.join();
 			positionUpdateThread.join();
@@ -110,7 +110,7 @@ namespace ecs
 			applyVelocityInterpolatedThread.join();
 			applySizeInterpolatedThread.join();
 			applyColorInterpolatedThread.join();
-			
+
 			interpolateVelocityThread.join();
 			interpolateSizeThread.join();
 			interpolateColorThread.join();
@@ -130,8 +130,9 @@ namespace ecs
 			ecs::DrawPointBatchSystem(registry, pointBatchRenderer);
 
 			// Calculate Registry size
-			const auto registrySize = registry.size();
-			const auto registryAliveSize = registry.alive();
+			const auto registrySize = registry.storage<ps_entity>().size();
+			const auto registryFreeSize = registry.storage<ps_entity>().free_list();
+			const auto registryTotalSize = registrySize + registryFreeSize;
 
 			// Calculate the total size of all components
 			std::size_t componentsCount = 0;
@@ -143,7 +144,7 @@ namespace ecs
 				componentsSize += componentSizeResult.second;
 			}
 
-			DrawText(TextFormat("Entities: %d / %d", registryAliveSize, registrySize), 4, 60, 20, LIME);
+			DrawText(TextFormat("Entities: %d / %d", registrySize, registryTotalSize), 4, 60, 20, LIME);
 			DrawText(TextFormat("Components: %d / Size: %s", componentsCount, FormatBytes(componentsSize)), 4, 80, 20, LIME);
 		}
 
@@ -303,7 +304,7 @@ namespace ecs
 		template<typename... Component>
 		[[nodiscard]] decltype(auto) TryGetComponent()
 		{
-			return manager->registry.try_get<Component>(entity);
+			return manager->registry.try_get<Component...>(entity);
 		}
 
 		template<typename Component, typename... Args>

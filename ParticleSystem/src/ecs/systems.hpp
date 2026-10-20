@@ -34,10 +34,7 @@ namespace ecs
 							float t = time - lifetimeComponent.spawntime;
 
 							if (t > lifetimeComponent.lifetime)
-							{
-
 								registry.emplace<DestroyEntityComponent>(entity);
-							}
 
 							lifetimeComponent.t = t / lifetimeComponent.lifetime;
 						});
